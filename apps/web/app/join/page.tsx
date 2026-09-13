@@ -7,7 +7,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SpaceJoinBackground } from '@/components/SpaceJoinBackground';
-import { Bell, ExternalLink, Palette, X } from 'lucide-react';
 import type { Role } from '@echosphere/shared-types';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import {
@@ -15,27 +14,6 @@ import {
   storeIdentity,
   type SessionSummary,
 } from '@/lib/orchestrator';
-
-const doodleProducts = [
-  {
-    name: 'The Doodle Kit',
-    price: '₹999',
-    tag: 'Best seller',
-    href: 'https://www.doodleproject.in/product-page/the-doodle-kit',
-  },
-  {
-    name: "Traveller's Doodle Kit",
-    price: '₹1,499',
-    tag: 'On the go',
-    href: 'https://www.doodleproject.in/product-page/traveler-s-doodle-kit',
-  },
-  {
-    name: 'The Therapeutic Art Kit',
-    price: '₹1,999',
-    tag: 'Relax pick',
-    href: 'https://www.doodleproject.in/product-page/the-therapeutic-art-kit?currency=INR',
-  },
-];
 
 export default function JoinPage() {
   const router = useRouter();
@@ -49,7 +27,6 @@ export default function JoinPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reachable, setReachable] = useState<boolean | null>(null);
-  const [doodleOpen, setDoodleOpen] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -125,7 +102,7 @@ export default function JoinPage() {
         // Text was pinned for the always-dark starfield, but the surface
         // tokens behind it were not: --eco-ink-raised/-sunken still flip
         // light in light mode, so anything filled with them (the name
-        // input, the doodle popover, "Join by code") turned into pale text
+        // input, "Join by code") turned into pale text
         // on a pale box. Pin these to their dark-theme values too, so every
         // fill on this page stays a dark surface the pinned light text can
         // actually sit on, matching the dark theme's own pairing.
@@ -142,115 +119,6 @@ export default function JoinPage() {
           </span>
         </div>
         <div className="relative flex items-center gap-2">
-          <button
-            type="button"
-            aria-label="Open doodle and relax corner"
-            aria-expanded={doodleOpen}
-            onClick={() => setDoodleOpen((open) => !open)}
-            className="group relative inline-flex h-10 w-10 items-center justify-center rounded-full border text-[var(--eco-cream)] shadow-sm transition-colors hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[var(--eco-athena)]"
-            style={{
-              borderColor: 'var(--eco-rule)',
-              background: 'color-mix(in srgb, var(--eco-ink-raised) 82%, transparent)',
-            }}
-          >
-            <Bell className="h-4 w-4" aria-hidden="true" />
-            <span
-              className="absolute right-2 top-2 h-2 w-2 rounded-full"
-              style={{ background: 'var(--eco-athena)' }}
-            />
-          </button>
-          {doodleOpen && (
-            <aside
-              className="eco-glass absolute right-0 top-12 z-20 flex w-[min(20rem,calc(100vw-3rem))] flex-col gap-3 p-4 text-left shadow-2xl"
-              aria-label="Doodle and relax corner"
-              /* .eco-glass's own 88% background reads white in light mode --
-                 fine over a photo, but this panel floats over the always-dark
-                 starfield with text pinned white (see the wrapper above), so
-                 the default washes it out. Match the other glass cards on
-                 this page, which already override it for the same reason. */
-              style={{
-                background: 'color-mix(in srgb, var(--eco-ink-raised) 45%, transparent)',
-                backdropFilter: 'blur(20px)',
-              }}
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="inline-flex h-8 w-8 items-center justify-center rounded-full"
-                    style={{
-                      background:
-                        'color-mix(in srgb, var(--eco-athena) 20%, transparent)',
-                      color: 'var(--eco-athena)',
-                    }}
-                  >
-                    <Palette className="h-4 w-4" aria-hidden="true" />
-                  </span>
-                  <div>
-                    <p className="eco-label text-[var(--eco-athena)]">
-                      Doodle & relax corner
-                    </p>
-                    <p className="text-xs text-[var(--eco-cream-dim)]">
-                      Tiny creative breaks before class.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  aria-label="Close doodle and relax corner"
-                  onClick={() => setDoodleOpen(false)}
-                  className="inline-flex h-7 w-7 items-center justify-center rounded-full text-[var(--eco-cream-dim)] transition-colors hover:bg-white/10 hover:text-[var(--eco-cream)]"
-                >
-                  <X className="h-4 w-4" aria-hidden="true" />
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-2">
-                {doodleProducts.map((product) => (
-                  <a
-                    key={product.name}
-                    href={product.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5 transition-colors hover:bg-white/10"
-                    style={{
-                      borderColor: 'var(--eco-rule)',
-                      // A light tint added on top of the panel's own background
-                      // rather than --eco-ink-sunken directly, which reads as a
-                      // near-white card in light mode against text pinned white.
-                      background: 'color-mix(in srgb, var(--eco-cream) 8%, transparent)',
-                    }}
-                  >
-                    <span className="min-w-0">
-                      <span className="block truncate text-sm font-medium text-[var(--eco-cream)]">
-                        {product.name}
-                      </span>
-                      <span className="block text-xs text-[var(--eco-cream-faint)]">
-                        {product.tag}
-                      </span>
-                    </span>
-                    <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[var(--eco-athena)]">
-                      {product.price}
-                      <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
-                    </span>
-                  </a>
-                ))}
-              </div>
-
-              <a
-                href="https://www.doodleproject.in/shop-1"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold transition-opacity hover:opacity-90"
-                style={{
-                  background: 'var(--eco-athena)',
-                  color: 'var(--eco-ink)',
-                }}
-              >
-                Browse the shop
-                <ExternalLink className="h-4 w-4" aria-hidden="true" />
-              </a>
-            </aside>
-          )}
           <ThemeToggle />
         </div>
       </header>
