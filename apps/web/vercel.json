@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "buildCommand": "pnpm --filter @echosphere/web build",
+  "devCommand": "pnpm --filter @echosphere/web dev",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "env": {
+    "NEXT_PUBLIC_VERCEL_URL": "${VERCEL_URL}"
+  },
+  "github": {
+    "silent": true,
+    "autoAlias": true
+  }
+}

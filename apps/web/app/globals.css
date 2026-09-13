@@ -1,0 +1,1854 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Light theme (default). Dark tokens apply when the OS prefers dark mode. */
+:root {
+  color-scheme: light;
+
+  /* --- Agora light token set --- */
+
+  /* Backgrounds */
+  --background:       220 20% 98%;
+  --surface:          220 18% 96%;
+  --surface-elevated: 220 16% 94%;
+
+  /* Semantic surface aliases */
+  --card:             0 0% 100%;
+  --card-foreground:  220 25% 12%;
+  --popover:          0 0% 100%;
+  --popover-foreground: 220 25% 12%;
+  --muted:            220 14% 94%;
+
+  /* Borders / inputs */
+  --border:           220 13% 88%;
+  --input:            220 13% 88%;
+
+  /* Foreground */
+  --foreground:       220 25% 12%;
+  --muted-foreground: 220 10% 42%;
+
+  /* Brand — Agora cyan */
+  --primary:            194 100% 42%;
+  --primary-foreground: 220 25% 12%;
+
+  /* Secondary — quiet surface-level control */
+  --secondary:            220 14% 94%;
+  --secondary-foreground: 220 25% 12%;
+
+  /* Accent — same hue as primary */
+  --accent:            194 100% 42%;
+  --accent-foreground: 220 25% 12%;
+
+  /* Destructive — end call, error states only */
+  --destructive:            0 72% 52%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Focus ring */
+  --ring: 194 100% 42%;
+
+  /* Radius base (8px) */
+  --radius: 0.5rem;
+
+  /* Charts */
+  --chart-1: 194 100% 42%;
+  --chart-2: 220 10% 45%;
+  --chart-3: 220 10% 35%;
+  --chart-4: 0 72% 52%;
+  --chart-5: 150 50% 40%;
+
+  /* Sidebar */
+  --sidebar-background:         0 0% 100%;
+  --sidebar-foreground:         220 25% 12%;
+  --sidebar-primary:            194 100% 42%;
+  --sidebar-primary-foreground: 220 25% 12%;
+  --sidebar-accent:             220 14% 94%;
+  --sidebar-accent-foreground:  220 25% 12%;
+  --sidebar-border:             220 13% 88%;
+  --sidebar-ring:               194 100% 42%;
+
+  /*
+   * AgentVisualizer: same order as dark — cool/primary at bar bottom, soft mid, purple at top.
+   * Light: blue ≈ cyan role; dark: overridden below (cyan → soft → purple).
+   */
+  --viz-stop-1: 225 92% 50%;
+  --viz-stop-2: 220 14% 78%;
+  --viz-stop-3: 285 58% 48%;
+
+  /* Font */
+  /* The loaded body face first; the system stack is only a fallback. Keeps
+     anything outside .eco-room on the same typeface as everything inside it. */
+  --font-sans: var(--font-body), var(--font-devanagari), system-ui, -apple-system,
+    BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    /* --- Agora dark token set --- */
+
+    --background:       220 14% 5%;
+    --surface:          220 12% 9%;
+    --surface-elevated: 220 10% 13%;
+
+    --card:             220 12% 9%;
+    --card-foreground:  220 15% 95%;
+    --popover:          220 10% 13%;
+    --popover-foreground: 220 15% 95%;
+    --muted:            220 12% 9%;
+
+    --border:           220 10% 18%;
+    --input:            220 10% 18%;
+
+    --foreground:       220 15% 95%;
+    --muted-foreground: 220 10% 50%;
+
+    --primary:            194 100% 50%;
+    --primary-foreground: 220 14% 5%;
+
+    --secondary:            220 10% 13%;
+    --secondary-foreground: 220 15% 95%;
+
+    --accent:            194 100% 50%;
+    --accent-foreground: 220 14% 5%;
+
+    --destructive:            0 72% 58%;
+    --destructive-foreground: 0 0% 100%;
+
+    --ring: 194 100% 50%;
+
+    --chart-1: 194 100% 50%;
+    --chart-2: 220 10% 60%;
+    --chart-3: 220 10% 40%;
+    --chart-4: 0 72% 58%;
+    --chart-5: 150 60% 45%;
+
+    --sidebar-background:         220 12% 9%;
+    --sidebar-foreground:         220 15% 95%;
+    --sidebar-primary:            194 100% 50%;
+    --sidebar-primary-foreground: 220 14% 5%;
+    --sidebar-accent:             220 10% 13%;
+    --sidebar-accent-foreground:  220 15% 95%;
+    --sidebar-border:             220 10% 18%;
+    --sidebar-ring:               194 100% 50%;
+
+    /* Agent visualizer accent ramp used by the current conversation UI. */
+    --viz-stop-1: 194 100% 58%;
+    --viz-stop-2: 215 42% 72%;
+    --viz-stop-3: 272 62% 72%;
+  }
+}
+
+body {
+  font-family: var(--font-sans);
+  /* Every route is the Echosphere classroom (app/page.tsx redirects to /join),
+     so the whole document sits on the eco ground defined below. Light by
+     default; the dotted texture and warmth read correctly in both themes
+     because every value here comes from the --eco-* custom properties. The
+     study-doodle wallpaper is a separate ::before layer below, so it can be
+     inverted for dark mode without touching this base. */
+  color: var(--eco-cream);
+  background:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--eco-cream) 4%, transparent) 1px, transparent 0)
+      0 0 / 26px 26px,
+    var(--eco-ink);
+}
+
+/*
+ * Study-doodle wallpaper — a fixed, full-viewport layer behind everything,
+ * kept separate from body's own background so a CSS filter can flip it for
+ * dark mode without a second image asset. Same source PNG in both themes:
+ * light mode uses it as drawn (dark linework on a pale ground); dark mode
+ * inverts it (pale linework on a dark ground) via `invert(1)`.
+ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: url('/study-pattern.png') repeat 0 0 / 480px 480px;
+  opacity: 0.4;
+}
+
+[data-eco-theme='dark'] body::before {
+  filter: invert(1) brightness(1.6);
+  opacity: 0.55;
+}
+
+/* Explicit placeholder color — left to browser defaults, some render too
+   faint against the light theme's white input fields to read comfortably. */
+::placeholder {
+  color: var(--eco-cream-faint);
+  opacity: 1;
+}
+
+/* --- Entry animations --- */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.animate-fade-up-d1 { animation-delay: 60ms; }
+.animate-fade-up-d2 { animation-delay: 120ms; }
+.animate-fade-up-d3 { animation-delay: 180ms; }
+
+/* --- MicButtonWithVisualizer: force a true circle ---
+   The parent flex can stretch the <button> unevenly. */
+.conversation-mic-host {
+  flex-shrink: 0;
+}
+.conversation-mic-host > button {
+  aspect-ratio: 1 / 1;
+  width: 3rem;
+  height: 3rem;
+  min-width: 3rem;
+  min-height: 3rem;
+  max-width: 3rem;
+  max-height: 3rem;
+  border-radius: 9999px;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: visible; /* Web Audio bar visualizer in bottom band; avoid clipping */
+}
+@media (min-width: 640px) {
+  .conversation-mic-host > button {
+    width: 3.5rem;
+    height: 3.5rem;
+    min-width: 3.5rem;
+    min-height: 3.5rem;
+    max-width: 3.5rem;
+    max-height: 3.5rem;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+ * Echosphere classroom design language
+ * ══════════════════════════════════════════════════════════════════════════
+ *
+ * Two reference points, deliberately, the same way a good broadcast-studio
+ * design brief works from a couple of concrete objects rather than a mood
+ * board of adjectives:
+ *
+ *   1. A community radio broadcast desk. This product is audio-only by
+ *      product decision, not by limitation — so the UI should look like it
+ *      belongs to something that transmits sound, not like a video-call
+ *      client with the video panes removed. On-air lamps, level meters, a
+ *      warm dial glow.
+ *
+ *   2. A study lamp on a desk at daytime. Pure broadcast-desk chrome reads
+ *      cold and a little intimidating for a classroom a nine-year-old might
+ *      sit in, so the second reference pulls it back toward something
+ *      humane: light streaming through a classroom window, not a wall of
+ *      equipment.
+ *
+ * Rules that hold everywhere below:
+ *   - LIGHT is the default ground — warm paper/cream, never a cold, sterile
+ *     white. It should read like daylight in a real classroom, not a
+ *     dashboard. Dark mode (`[data-eco-theme="dark"]`) is available via the
+ *     toggle and keeps the original warm near-black "lamp at night" mood.
+ *   - The accent is a tube-radio "magic eye" glow — the little indicator on
+ *     an old radio that glows brightest when the dial is perfectly tuned.
+ *     It is the one color idea in this file that is actually load-bearing for
+ *     the PRODUCT metaphor: Athena "tuned in" and listening is the whole
+ *     turn-taking design, and the glow is what that looks like.
+ *   - Soft corners are the default (the desk-lamp half of the brief); the
+ *     mic control is the one deliberately circular, tactile exception — the
+ *     thing in the room you actually reach out and touch.
+ *   - Every participant gets one, and always the same, seat color — so a
+ *     name is never the only thing distinguishing two people in a fast-moving
+ *     transcript.
+ *
+ * These are additive custom properties (`--eco-*`), kept separate from the
+ * `--background`/`--primary`/etc. tokens above that the original quickstart's
+ * (currently unrouted) landing page still reads, so neither system disturbs
+ * the other.
+ */
+
+:root {
+  /* Meraki core palette — LIGHT (default) */
+  --ink:        #F7F4EE;   /* app ground — warm paper, daylight not dashboard */
+  --slate:      #FFFFFF;   /* card / panel surface */
+  --paper:      #211D14;   /* type on the light ground — warm near-black */
+  --chalk:      #FBFCFD;   /* cards, raised surfaces */
+  --marigold:   #E8A317;   /* attention — the agent has something to say */
+  --teal:       #0F766E;   /* active — the agent is speaking */
+  --clay:       #B85C38;   /* held back — used at low opacity, never filled */
+
+  /* Map old Echo theme variables to new Meraki tokens to preserve CSS compatibility */
+  --eco-ink: var(--ink);
+  --eco-ink-raised: var(--slate);
+  --eco-ink-sunken: #F1ECE0;
+
+  /* Tube glow — the general UI accent (still teal) */
+  --eco-glow: var(--teal);
+  --eco-glow-bright: #0d9488;
+  --eco-glow-dim: #DCEEEB;
+
+  /*
+   * Athena's identity colour — a warm amber/gold. Used ONLY for the AI:
+   * her orb, her transcript accent, active-quiz state. Never for the general
+   * UI accent and never for error/danger.
+   */
+  --eco-athena: #E8A317;
+  --eco-athena-dim: #FBEBC9;
+
+  /* Warm ink type — never pure black, never pure white, on this ground */
+  --eco-cream: var(--paper);
+  --eco-cream-dim: #4A4438;
+  --eco-cream-faint: #6B6355;
+
+  /* Signals — kept close to convention; these need to be read instantly */
+  --eco-red: var(--clay);
+  --eco-red-dim: #F7E4DA;
+  --eco-amber: var(--marigold);
+  --eco-amber-dim: #FBEBC9;
+  --eco-green: var(--teal);
+  --eco-green-dim: #DCEEEB;
+  --eco-blue: #0284c7;
+  --eco-blue-dim: #E0F2FE;
+
+  /* Hairline card border — warm light gray, not a cool-tinted rule */
+  --eco-rule: #E4DFD3;
+
+  /*
+   * Camera-off participant avatar hues — one per person, assigned by hashing
+   * participantId in lib/seatColor.ts. Four distinct hues: teal, amber, rose,
+   * violet (see the UI restyle spec). Same hues in both themes — only the
+   * ground and panel colors change.
+   */
+  --eco-seat-1: #2FA89A;   /* teal   */
+  --eco-seat-2: #D98A3D;   /* amber  */
+  --eco-seat-3: #C23A5E;   /* rose   */
+  --eco-seat-4: #7B5FD9;   /* violet */
+  
+  /* Join-page photo overlay. Lighter than the old flat 0.28→0.48 black wash. */
+  --eco-join-tint: linear-gradient(
+    180deg,
+    rgba(20, 18, 14, 0.14) 0%,
+    rgba(20, 18, 14, 0.3) 100%
+  );
+}
+
+/*
+ * Dark theme override — applied by ThemeToggle setting
+ * document.documentElement.dataset.ecoTheme = 'dark'. Same values the app
+ * shipped with before the light theme became the default.
+ */
+:root[data-eco-theme='dark'] {
+  --ink:        #0B0B0D;
+  --slate:      #151417;
+  --paper:      #EEF1F4;
+  --chalk:      #FBFCFD;
+  --marigold:   #E8A317;
+  --teal:       #0F766E;
+  --clay:       #B85C38;
+
+  --eco-ink: var(--ink);
+  --eco-ink-raised: var(--slate);
+  --eco-ink-sunken: #101013;
+
+  --eco-glow: var(--teal);
+  --eco-glow-bright: #14b8a6;
+  --eco-glow-dim: #115e59;
+
+  --eco-athena: #EFB65C;
+  --eco-athena-dim: #3a2b0e;
+
+  --eco-cream: var(--paper);
+  --eco-cream-dim: #94a3b8;
+  --eco-cream-faint: #64748b;
+
+  --eco-red: var(--clay);
+  --eco-red-dim: #451a0e;
+  --eco-amber: var(--marigold);
+  --eco-amber-dim: #453007;
+  --eco-green: var(--teal);
+  --eco-green-dim: #0a3d39;
+  --eco-blue: #38bdf8;
+  --eco-blue-dim: #0c4a6e;
+
+  --eco-rule: #2A2822;
+
+  --eco-seat-1: #2FA89A;
+  --eco-seat-2: #D98A3D;
+  --eco-seat-3: #C23A5E;
+  --eco-seat-4: #7B5FD9;
+  
+  /* Grayish rather than pure black, so the photo still reads through. */
+  --eco-join-tint: linear-gradient(
+    180deg,
+    rgba(42, 44, 50, 0.45) 0%,
+    rgba(22, 23, 27, 0.7) 100%
+  );
+}
+
+.eco-room {
+  /* The dotted ground lives on <body> so it never seams against a centered
+     page shell; the room itself is transparent over it. */
+  background: transparent;
+  color: var(--eco-cream);
+  font-family: var(--font-body), var(--font-devanagari), ui-sans-serif, system-ui, sans-serif;
+}
+
+.eco-display {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+
+/** The ECHOSPHERE wordmark — condensed, tracked-out caps. */
+.eco-wordmark {
+  font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+/** Tabular so a live turn counter or clock does not shuffle sideways. */
+.eco-numerals {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+/** The small tracked-out caps label above a panel section. */
+.eco-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--eco-glow);
+}
+
+.eco-label-dim {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--eco-cream-faint);
+}
+
+/**
+ * A panel is a flat, softly-rounded block with a hairline rule and a 1px
+ * inner top highlight, which is what makes it read as a lit surface rather
+ * than a div with a border.
+ */
+.eco-panel {
+  background: var(--eco-ink-raised);
+  border: 1px solid var(--eco-rule);
+  border-radius: 0.875rem;
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--eco-glow) 8%, transparent);
+}
+
+.eco-panel-sunken {
+  background: var(--eco-ink-sunken);
+  border: 1px solid var(--eco-rule);
+  border-radius: 0.625rem;
+}
+
+/**
+ * A translucent glass panel over a photographic background — the join
+ * screen's hero card. Distinct from .eco-panel (which is a flat opaque
+ * surface for content that sits on the plain ground) because this one needs
+ * to let the classroom photo show through at the edges.
+ */
+.eco-glass {
+  background: color-mix(in srgb, var(--eco-ink-raised) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--eco-cream) 14%, transparent);
+  border-radius: 1.25rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 20px 60px -20px color-mix(in srgb, var(--eco-ink) 45%, transparent);
+}
+
+/**
+ * An on-air lamp: a small glowing status dot. The glow is a real box-shadow
+ * bloom, not a flat dot — "gradients are light sources, never decoration" is
+ * the rule this exists to demonstrate.
+ */
+.eco-lamp {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+.eco-lamp-glow {
+  background: var(--eco-glow);
+  box-shadow: 0 0 8px 1px color-mix(in srgb, var(--eco-glow) 70%, transparent);
+}
+.eco-lamp-red {
+  background: var(--eco-red);
+  box-shadow: 0 0 8px 1px color-mix(in srgb, var(--eco-red) 70%, transparent);
+}
+.eco-lamp-amber {
+  background: var(--eco-amber);
+  box-shadow: 0 0 8px 1px color-mix(in srgb, var(--eco-amber) 70%, transparent);
+}
+.eco-lamp-off {
+  background: var(--eco-cream-faint);
+}
+
+/** A participant's persistent seat-color dot, next to their name everywhere. */
+.eco-seat-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+/**
+ * The one deliberately circular, tactile control — the mic toggle. Everything
+ * else in this room is softly rounded; this is the thing meant to feel like a
+ * physical button you press.
+ */
+.eco-mic-button {
+  border-radius: 9999px;
+}
+
+@keyframes eco-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.eco-pulse {
+  animation: eco-pulse 1.6s ease-in-out infinite;
+}
+
+/* ── Athena orb + speaking-avatar glow ─────────────────────────────────────── */
+
+@keyframes eco-orb-breathe {
+  0%, 100% { transform: scale(0.94); opacity: 0.7; }
+  50%      { transform: scale(1);    opacity: 1; }
+}
+@keyframes eco-orb-speak {
+  0%, 100% { transform: scale(0.9);  opacity: 0.85; }
+  30%      { transform: scale(1.06); opacity: 1; }
+  60%      { transform: scale(0.96); opacity: 0.9; }
+}
+@keyframes eco-avatar-ring {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 45%, transparent); }
+  50%      { box-shadow: 0 0 0 6px color-mix(in srgb, currentColor 0%, transparent); }
+}
+
+.eco-orb-idle    { animation: eco-orb-breathe 4s ease-in-out infinite; }
+.eco-orb-speaking { animation: eco-orb-speak 1s ease-in-out infinite; }
+
+/* Applied to a speaking participant's avatar circle; `currentColor` is their seat hue. */
+.eco-avatar-speaking { animation: eco-avatar-ring 1.4s ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .eco-pulse,
+  .eco-orb-idle,
+  .eco-orb-speaking,
+  .eco-avatar-speaking { animation: none; }
+}
+/* ---------------------------------------------------------------------------
+   Header action chips — "Absent Packet", "1:1 Tutor", "Catch-up", "Raise Hand".
+   Merged in from the support-features branch, where each was written with
+   hardcoded Tailwind colours (bg-amber-500/10, text-purple-300, bg-black/40).
+   Those are dark-theme-only and render as dark blocks on the light ground, so
+   the accent is passed per-button as `--chip-accent` and mixed against the
+   themed surface tokens instead. One rule themes every chip in both modes.
+   --------------------------------------------------------------------------- */
+.eco-action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 0.5rem;
+  border: 1px solid
+    color-mix(in srgb, var(--chip-accent, var(--eco-rule)) 35%, transparent);
+  background: color-mix(
+    in srgb,
+    var(--chip-accent, var(--eco-rule)) 12%,
+    var(--eco-ink-sunken)
+  );
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.25rem;
+  color: var(--chip-accent, var(--eco-cream));
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.eco-action-chip:hover {
+  background: color-mix(
+    in srgb,
+    var(--chip-accent, var(--eco-rule)) 22%,
+    var(--eco-ink-sunken)
+  );
+  border-color: color-mix(
+    in srgb,
+    var(--chip-accent, var(--eco-rule)) 55%,
+    transparent
+  );
+}
+
+/* Raised hand is a state, not an accent: it inverts so it reads across the room. */
+.eco-action-chip[data-active='true'] {
+  background: var(--chip-accent, var(--eco-amber));
+  border-color: var(--chip-accent, var(--eco-amber));
+  color: var(--eco-ink);
+}
+
+/* ---------------------------------------------------------------------------
+   Shared-workspace sticky notes.
+   The hue is per-note data (that is the point of sticky notes), but the merged
+   branch baked each surface in as a dark hex gradient, which reads as a black
+   card on the light ground. The hue now arrives as `--note-hue` and is mixed
+   against the themed surface token, so a note is a deep tint in dark mode and a
+   pale one in light mode — the way a real sticky note behaves.
+   --------------------------------------------------------------------------- */
+.eco-sticky {
+  border: 1px solid color-mix(in srgb, var(--note-hue) 40%, transparent);
+  background: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--note-hue) 16%, var(--eco-ink-sunken)),
+    color-mix(in srgb, var(--note-hue) 8%, var(--eco-ink-sunken))
+  );
+}
+
+.eco-sticky-header {
+  background: color-mix(in srgb, var(--note-hue) 22%, transparent);
+  color: var(--note-hue);
+}
+
+/* ---------------------------------------------------------------------------
+   Athena Digital Library — PageFlip and Synced Textbook Styling
+   --------------------------------------------------------------------------- */
+
+.eco-library-root {
+  --gold: #FFB020;
+  --teal: #2DD4BF;
+  --coral: #FF6B6B;
+  --violet: #A78BFA;
+  --sky: #38BDF8;
+  --paper: #FDFBF4;
+}
+
+/* --- Container & Optical Centering --- */
+.bookwrap {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 480px;
+  width: 100%;
+  overflow: hidden;
+  padding: 4px 0;
+}
+
+#bookshift {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  transition: transform 0.52s cubic-bezier(0.32, 0.72, 0.28, 1);
+}
+
+#book {
+  margin: 0 auto;
+}
+
+/* PageFlip engine containers — no filters or transforms on ancestors */
+.stf__parent {
+  position: relative;
+  z-index: 2;
+  display: block;
+  box-sizing: border-box;
+}
+
+.stf__item {
+  box-shadow: 0 22px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* --- Textbook Pages --- */
+.page {
+  background: var(--paper);
+  color: #20242E;
+  padding: 24px 22px 16px;
+  border: 1px solid #E7E0CE;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  backface-visibility: hidden;
+  box-sizing: border-box;
+}
+
+.page::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(20, 10, 40, 0.07), transparent 8%, transparent 92%, rgba(20, 10, 40, 0.05));
+}
+
+.tab {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  background: var(--gold);
+}
+
+.page[data-a="teal"] .tab { background: var(--teal); }
+.page[data-a="coral"] .tab { background: var(--coral); }
+.page[data-a="violet"] .tab { background: var(--violet); }
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  margin-bottom: 9px;
+  background: #FFF1D6;
+  color: #8A5B06;
+  width: fit-content;
+}
+
+.page[data-a="teal"] .eyebrow { background: #D8F7F1; color: #0B6255; }
+.page[data-a="coral"] .eyebrow { background: #FFE4E1; color: #9A2B22; }
+.page[data-a="violet"] .eyebrow { background: #EDE6FF; color: #4B2C99; }
+
+.page h3 {
+  font-family: var(--font-serif, "Instrument Serif", serif);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.15;
+  margin: 0 0 8px;
+  color: #161B26;
+}
+
+.page p {
+  font-size: 13px;
+  line-height: 1.55;
+  margin: 0 0 8px;
+  color: #3B4354;
+}
+
+.page b {
+  color: #1B4F8A;
+}
+
+.work {
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 4px 0 10px;
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-line;
+  background: linear-gradient(180deg, #FFF7E6, #FDEFD2);
+  border: 1px solid #F3DFB2;
+  border-left: 4px solid var(--gold);
+  color: #6A4C10;
+}
+
+.page[data-a="teal"] .work {
+  background: linear-gradient(180deg, #EAFBF8, #DAF4EF);
+  border-color: #BFEAE2;
+  border-left-color: var(--teal);
+  color: #0D5A4F;
+}
+
+.page[data-a="coral"] .work {
+  background: linear-gradient(180deg, #FFF0EE, #FDE2DE);
+  border-color: #F6CCC6;
+  border-left-color: var(--coral);
+  color: #8C2F26;
+}
+
+.page[data-a="violet"] .work {
+  background: linear-gradient(180deg, #F4F0FF, #EAE2FD);
+  border-color: #DACFF7;
+  border-left-color: var(--violet);
+  color: #452A8C;
+}
+
+.drill {
+  list-style: none;
+  padding: 0;
+  margin: 2px 0 0;
+}
+
+.drill li {
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 12px;
+  padding: 7px 10px;
+  margin-bottom: 6px;
+  background: #F5F2E7;
+  border-left: 3px solid #DDD5C0;
+  border-radius: 6px;
+  color: #3B4354;
+}
+
+.pnum {
+  margin-top: auto;
+  padding-top: 10px;
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 10.5px;
+  color: #A99B7E;
+  text-align: center;
+  letter-spacing: 0.1em;
+}
+
+/* --- Covers --- */
+.page.hard {
+  border: 0;
+  padding: 0;
+  color: #ffffff;
+}
+
+.cover {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 32px 24px;
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(155deg, #4C2A8F 0%, #7A35A8 46%, #B0407E 100%);
+  box-sizing: border-box;
+}
+
+.cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.9;
+  background:
+    radial-gradient(circle at 20% 16%, rgba(255, 176, 32, 0.85) 0 15px, transparent 16px),
+    radial-gradient(circle at 82% 26%, rgba(45, 212, 191, 0.8) 0 10px, transparent 11px),
+    radial-gradient(circle at 30% 84%, rgba(255, 255, 255, 0.6) 0 7px, transparent 8px),
+    radial-gradient(circle at 74% 90%, rgba(255, 107, 107, 0.85) 0 13px, transparent 14px),
+    radial-gradient(circle at 55% 8%,  rgba(56, 189, 248, 0.6) 0 8px, transparent 9px);
+}
+
+.cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 30%, rgba(20, 6, 40, 0.42));
+}
+
+.cover > * {
+  position: relative;
+  z-index: 2;
+}
+
+.cover .crest {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  backdrop-filter: blur(4px);
+}
+
+.cover .band {
+  width: 64px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--gold);
+  margin-bottom: 16px;
+}
+
+.cover h2 {
+  font-family: var(--font-serif, "Instrument Serif", serif);
+  font-weight: 400;
+  font-size: 32px;
+  line-height: 1.05;
+  margin: 0 0 10px;
+  text-shadow: 0 3px 20px rgba(0, 0, 0, 0.42);
+}
+
+.cover p {
+  margin: 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.86);
+  letter-spacing: 0.11em;
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+}
+
+.cover.end {
+  background: linear-gradient(155deg, #0F5D62 0%, #137A6A 48%, #3AA98A 100%);
+}
+
+/* --- Athena Glow Citation Animation --- */
+.glow {
+  animation: libraryGlow 1.6s ease-out;
+}
+
+@keyframes libraryGlow {
+  0% {
+    box-shadow: inset 0 0 0 4px var(--gold), 0 0 52px 8px rgba(255, 176, 32, 0.8);
+  }
+  100% {
+    box-shadow: inset 0 0 0 4px transparent, 0 0 0 0 rgba(255, 176, 32, 0);
+  }
+}
+
+/* --- Chapter Navigator Chips --- */
+.chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--eco-cream-dim, #A093C4);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background 0.16s, color 0.16s;
+}
+
+.chip:hover {
+  background: rgba(255, 255, 255, 0.07);
+  color: #ffffff;
+}
+
+.chip .sw {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--gold);
+}
+
+.chip[data-c="teal"] .sw { background: var(--teal); }
+.chip[data-c="coral"] .sw { background: var(--coral); }
+.chip[data-c="violet"] .sw { background: var(--violet); }
+
+.chip .n {
+  flex: 1;
+  line-height: 1.2;
+}
+
+.chip.on {
+  background: rgba(255, 255, 255, 0.11);
+  color: #ffffff;
+  border-color: var(--eco-rule, rgba(255, 255, 255, 0.12));
+  font-weight: 500;
+}
+
+.chip.on .sw {
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15);
+}
+
+/* --- Spread Indicator Dots --- */
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: width 0.28s, background 0.28s;
+}
+
+.dot.on {
+  background: var(--gold);
+  width: 22px;
+  border-radius: 4px;
+  box-shadow: 0 0 12px rgba(255, 176, 32, 0.7);
+}
+
+/* --- Avatars in HUD --- */
+.av.a { background: linear-gradient(135deg, #FFDD8C, #FFB020); }
+.av.b { background: linear-gradient(135deg, #9BF3E6, #2DD4BF); }
+.av.c { background: linear-gradient(135deg, #CFC0FF, #A78BFA); }
+
+@media (prefers-reduced-motion: reduce) {
+  #bookshift {
+    transition: none;
+  }
+  .glow {
+    animation: none;
+    box-shadow: inset 0 0 0 3px var(--gold);
+  }
+}
+
+/* ==========================================================================
+   Athena Digital Library Shelf & Stage Enhancements
+   ========================================================================== */
+
+.digital-library-stage {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 580px;
+  background: radial-gradient(circle at top right, color-mix(in srgb, var(--eco-amber) 8%, transparent), transparent 45%),
+              radial-gradient(circle at bottom left, color-mix(in srgb, var(--eco-blue) 8%, transparent), transparent 50%),
+              var(--eco-ink);
+  border-radius: 16px;
+  border: 1px solid var(--eco-rule);
+  overflow: hidden;
+  position: relative;
+}
+
+.stage-top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--eco-rule);
+  /* A frosted bar over the stage's own ground, not a fixed dark tint --
+     that assumed a permanently-dark stage and washed out in light mode. */
+  background: color-mix(in srgb, var(--eco-ink) 65%, transparent);
+  backdrop-filter: blur(8px);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.stage-left-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stage-brand-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  color: var(--eco-cream);
+}
+
+.stage-brand-pill .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--eco-green);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--eco-green) 80%, transparent);
+}
+
+.book-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--eco-cream-dim);
+}
+
+.book-breadcrumb .sep {
+  opacity: 0.4;
+}
+
+.shelf-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--eco-cream) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--eco-cream) 12%, transparent);
+  color: var(--eco-cream);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.shelf-nav-btn:hover {
+  background: color-mix(in srgb, var(--eco-cream) 12%, transparent);
+  border-color: color-mix(in srgb, var(--eco-cream) 25%, transparent);
+}
+
+.book-title-tag {
+  font-weight: 600;
+  color: var(--eco-cream);
+}
+
+.stage-right-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sound-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--eco-cream) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--eco-cream) 10%, transparent);
+  color: var(--eco-cream);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.sound-toggle-btn:hover {
+  background: color-mix(in srgb, var(--eco-cream) 12%, transparent);
+}
+
+.stage-lock-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.stage-lock-btn.locked {
+  background: color-mix(in srgb, var(--eco-amber) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--eco-amber) 40%, transparent);
+  color: var(--eco-amber);
+}
+
+.stage-lock-btn.unlocked {
+  background: color-mix(in srgb, var(--eco-green) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--eco-green) 40%, transparent);
+  color: var(--eco-green);
+}
+
+.student-lock-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  background: color-mix(in srgb, var(--eco-cream) 5%, transparent);
+  border: 1px solid color-mix(in srgb, var(--eco-cream) 10%, transparent);
+  color: var(--eco-cream-dim);
+}
+
+.stage-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--eco-cream-dim);
+  cursor: pointer;
+  transition: all 0.18s;
+}
+
+.stage-close-btn:hover {
+  background: color-mix(in srgb, var(--eco-cream) 10%, transparent);
+  color: var(--eco-cream);
+}
+
+/* --- Stage Main Grid Layout --- */
+.stage-main-content {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+  padding: 16px 20px;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 960px) {
+  .stage-main-content {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    overflow-y: auto;
+  }
+}
+
+.stage-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: color-mix(in srgb, var(--eco-cream) 3%, transparent);
+  border: 1px solid var(--eco-rule);
+  border-radius: 12px;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.sidebar-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--eco-cream-faint);
+  margin-bottom: 4px;
+}
+
+.chapter-chips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chapter-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--eco-cream) 3%, transparent);
+  border: 1px solid transparent;
+  color: var(--eco-cream-dim);
+  font-size: 12px;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.16s;
+}
+
+.chapter-chip:hover {
+  background: color-mix(in srgb, var(--eco-cream) 7%, transparent);
+  color: var(--eco-cream);
+}
+
+.chapter-chip.on {
+  background: color-mix(in srgb, var(--eco-cream) 10%, transparent);
+  color: var(--eco-cream);
+  border-color: color-mix(in srgb, var(--eco-cream) 16%, transparent);
+}
+
+.chip-swatch {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex: none;
+  background: var(--eco-amber);
+}
+
+.chapter-chip[data-c="teal"] .chip-swatch { background: var(--eco-green); }
+.chapter-chip[data-c="coral"] .chip-swatch { background: var(--eco-red); }
+.chapter-chip[data-c="violet"] .chip-swatch { background: var(--eco-blue); }
+
+.chip-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip-pnum {
+  font-size: 10px;
+  opacity: 0.6;
+  font-family: var(--font-mono, monospace);
+}
+
+/* --- Center Stage & Flipbook --- */
+.stage-center-book {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 0;
+}
+
+.flipbook-outer-box {
+  width: 100%;
+  max-width: 740px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.stage-turn-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.nav-arrow-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--eco-cream) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--eco-cream) 12%, transparent);
+  color: var(--eco-cream);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.16s;
+}
+
+.nav-arrow-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--eco-cream) 14%, transparent);
+}
+
+.nav-arrow-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.spread-dots-box {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.spread-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--eco-cream) 20%, transparent);
+  transition: all 0.22s;
+}
+
+.spread-dot.on {
+  width: 18px;
+  border-radius: 4px;
+  background: var(--eco-amber);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--eco-amber) 70%, transparent);
+}
+
+.desync-catchup-banner {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: color-mix(in srgb, var(--eco-amber) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--eco-amber) 35%, transparent);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--eco-amber);
+}
+
+.catchup-action-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--eco-amber);
+  color: var(--eco-ink);
+  font-weight: 600;
+  border: none;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.16s;
+}
+
+.catchup-action-btn:hover {
+  transform: scale(1.02);
+}
+
+/* --- Right Column RTM Log --- */
+.stage-rtm-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--eco-rule, rgba(255, 255, 255, 0.07));
+  border-radius: 12px;
+  padding: 12px;
+  overflow-y: auto;
+}
+
+.rtm-panel-title {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--eco-cream-faint, #6E638D);
+}
+
+.seats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 6px;
+}
+
+.seat-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 11px;
+  color: var(--eco-cream, #F1EDFA);
+  transition: all 0.25s;
+}
+
+.seat-badge.ping {
+  background: rgba(45, 212, 191, 0.2);
+  border-color: var(--teal, #2DD4BF);
+  transform: scale(1.04);
+}
+
+.seat-avatar {
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--teal, #2DD4BF);
+}
+
+.seat-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+}
+
+.seat-pg {
+  font-size: 9.5px;
+  color: var(--eco-cream-faint, #6E638D);
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+}
+
+.rtm-log-box {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.log-header {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--eco-cream-dim, #A093C4);
+}
+
+.log-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.log-entry {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 6px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.35);
+  font-family: var(--font-mono, "IBM Plex Mono", monospace);
+  font-size: 10px;
+  color: var(--eco-cream-dim, #A093C4);
+  border-left: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.log-entry.athena {
+  border-left-color: var(--gold, #FFB020);
+  color: var(--gold, #FFB020);
+}
+
+.log-entry.teacher {
+  border-left-color: var(--teal, #2DD4BF);
+  color: var(--teal, #2DD4BF);
+}
+
+.log-entry i {
+  font-style: normal;
+  font-size: 8.5px;
+  opacity: 0.7;
+}
+
+/* --- Shelf View Styles --- */
+.library-shelf-wrapper {
+  padding: 24px;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.shelf-header {
+  margin-bottom: 20px;
+}
+
+.shelf-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--eco-cream);
+  margin: 0 0 6px;
+}
+
+.shelf-subtitle {
+  font-size: 13px;
+  color: var(--eco-cream-dim);
+  margin: 0;
+}
+
+.shelf-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.shelf-book-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--eco-cream) 3%, transparent);
+  border: 1px solid var(--eco-rule);
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.22s;
+  position: relative;
+}
+
+.shelf-book-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--eco-cream) 20%, transparent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.shelf-book-card.active {
+  border-color: var(--eco-amber);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--eco-amber) 20%, transparent);
+}
+
+/* Book-spine gradients (getSpineGradient in ShelfView) are fixed, saturated
+   colors by design -- a shelf of book covers, not a UI surface -- so the
+   white text on them stays fixed rather than following the page theme. */
+.book-spine-cover {
+  height: 140px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #ffffff;
+  position: relative;
+}
+
+.spine-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.spine-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.spine-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  opacity: 0.8;
+  font-family: var(--font-mono, monospace);
+}
+
+.book-card-info {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.book-info-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--eco-cream);
+}
+
+.book-info-sub {
+  font-size: 11.5px;
+  color: var(--eco-cream-dim);
+}
+
+.book-info-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.book-kind-badge {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--eco-cream) 8%, transparent);
+  color: var(--eco-cream-dim);
+}
+
+.open-now-badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--eco-amber) 20%, transparent);
+  color: var(--eco-amber);
+}
+
+.delete-book-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  /* Overlays the spine art, not the page ground, so this stays a fixed dark
+     chip (like a control over a photo) rather than following the theme. */
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: var(--eco-red);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.16s;
+  z-index: 5;
+}
+
+.delete-book-btn:hover {
+  background: var(--eco-red);
+  color: #ffffff;
+}
+
+/* --- Shelf Add Cards --- */
+.shelf-add-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 18px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--eco-cream) 16%, transparent);
+  background: color-mix(in srgb, var(--eco-cream) 1.5%, transparent);
+  cursor: pointer;
+  transition: all 0.22s;
+  min-height: 220px;
+}
+
+.shelf-add-card:hover {
+  border-color: color-mix(in srgb, var(--eco-cream) 35%, transparent);
+  background: color-mix(in srgb, var(--eco-cream) 4%, transparent);
+  transform: translateY(-3px);
+}
+
+.add-icon-box {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 12px;
+}
+
+.add-icon-box.gold {
+  background: color-mix(in srgb, var(--eco-amber) 15%, transparent);
+  color: var(--eco-amber);
+}
+
+.add-icon-box.teal {
+  background: color-mix(in srgb, var(--eco-green) 15%, transparent);
+  color: var(--eco-green);
+}
+
+.add-icon-box.violet {
+  background: color-mix(in srgb, var(--eco-blue) 15%, transparent);
+  color: var(--eco-blue);
+}
+
+.add-card-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--eco-cream);
+  margin-bottom: 4px;
+}
+
+.add-card-desc {
+  font-size: 11.5px;
+  color: var(--eco-cream-dim);
+  line-height: 1.4;
+  margin-bottom: 14px;
+}
+
+.add-btn-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--eco-cream) 8%, transparent);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--eco-cream);
+}
+
+/* --- Modals for Upload / Parse --- */
+.library-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--eco-ink) 70%, transparent);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.library-modal-card {
+  width: 100%;
+  max-width: 520px;
+  /* Was pinned to a fixed dark purple (var(--eco-panel, #150E2E)) --
+     --eco-panel is never actually defined, so that fallback always won,
+     leaving a hardcoded dark card even in light mode. .eco-panel's own
+     recipe -- ink-raised + rule -- is what the rest of the app uses. */
+  background: var(--eco-ink-raised);
+  border: 1px solid var(--eco-rule);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-title-row h3 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--eco-cream);
+}
+
+.modal-sparkle {
+  color: var(--eco-amber);
+}
+
+.modal-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--eco-cream-dim);
+  cursor: pointer;
+}
+
+.modal-error-banner {
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--eco-red) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--eco-red) 35%, transparent);
+  color: var(--eco-red);
+  font-size: 12px;
+  margin-bottom: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.form-group label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--eco-cream);
+}
+
+.form-group input,
+.form-group textarea {
+  background: var(--eco-ink-sunken);
+  border: 1px solid var(--eco-rule);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--eco-cream);
+  outline: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--eco-green);
+}
+
+.parser-tips {
+  font-size: 11px;
+  color: var(--eco-cream-faint);
+}
+
+.parser-disclaimer {
+  font-size: 11.5px;
+  color: var(--eco-cream-dim);
+  background: color-mix(in srgb, var(--eco-cream) 4%, transparent);
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 14px;
+  line-height: 1.4;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.btn-cancel {
+  padding: 8px 16px;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--eco-cream) 12%, transparent);
+  color: var(--eco-cream-dim);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  background: var(--eco-green);
+  color: var(--eco-ink);
+  font-weight: 700;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* --- Image / PDF canvas page inside flipbook --- */
+.page.page-image-mode {
+  padding: 0 !important;
+  background: #ffffff;
+}
+
+.pdf-canvas-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+

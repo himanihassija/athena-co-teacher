@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agora ConvoAI — Python Demo</title>
+  <script src="https://download.agora.io/sdk/release/AgoraRTC_N-4.23.3.js"></script>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --ink: #14100c;
+      --paper: #f2ede3;
+      --accent: #5eead4;
+      --accent-dim: #134e4a;
+      --danger: #f2555f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--ink);
+      color: var(--paper);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+    }
+    main {
+      width: 100%;
+      max-width: 28rem;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+      align-items: center;
+      text-align: center;
+    }
+    h1 { font-size: 1.5rem; margin: 0; }
+    p.sub { margin: 0; color: #a89e8f; font-size: 0.875rem; }
+
+    .orb {
+      width: 8rem;
+      height: 8rem;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 2px solid #3a332a;
+      transition: all 200ms ease;
+    }
+    .orb[data-state="idle"] { color: #6b6255; }
+    .orb[data-state="connecting"] { border-color: var(--accent); color: var(--accent); animation: pulse 1.2s infinite; }
+    .orb[data-state="live"] { border-color: var(--accent); background: var(--accent-dim); color: var(--accent); }
+    .orb[data-state="error"] { border-color: var(--danger); color: var(--danger); }
+    @keyframes pulse { 50% { opacity: 0.4; } }
+
+    button {
+      appearance: none;
+      border: none;
+      border-radius: 0.625rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 150ms ease;
+    }
+    button:disabled { cursor: not-allowed; opacity: 0.5; }
+    button.primary { background: var(--accent); color: var(--ink); }
+    button.danger { background: var(--danger); color: var(--ink); }
+    button:hover:not(:disabled) { opacity: 0.85; }
+
+    .status {
+      font-size: 0.8125rem;
+      color: #a89e8f;
+      min-height: 1.2em;
+    }
+    .status[data-tone="error"] { color: var(--danger); }
+  </style>
+</head>
+<body>
+  <main>
+    <div>
+      <h1>Agora ConvoAI</h1>
+      <p class="sub">Python (FastAPI) backend · Agora Web SDK in the browser</p>
+    </div>
+
+    <div class="orb" id="orb" data-state="idle">Idle</div>
+
+    <div style="display:flex; gap:0.75rem;">
+      <button class="primary" id="startBtn">Start conversation</button>
+      <button class="danger" id="stopBtn" disabled>End</button>
+    </div>
+
+    <p class="status" id="status"></p>
+  </main>
+
+  <script>
+    const orb = document.getElementById('orb');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const statusEl = document.getElementById('status');
+
+    let client = null;
+    let localMicTrack = null;
+    let session = null; // { channel, agentUid, agentId }
+
+    function setState(state) {
+      orb.dataset.state = state;
+      orb.textContent = {
+        idle: 'Idle',
+        connecting: 'Connecting…',
+        live: 'Listening',
+        error: 'Error',
+      }[state] ?? state;
+    }
+
+    function setStatus(message, tone) {
+      statusEl.textContent = message ?? '';
+      if (tone) statusEl.dataset.tone = tone;
+      else delete statusEl.dataset.tone;
+    }
+
+    async function start() {
+      startBtn.disabled = true;
+      setState('connecting');
+      setStatus('Minting a token and starting the agent…');
+
+      try {
+        const joinResponse = await fetch('/api/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({}),
+        });
+        if (!joinResponse.ok) {
+          const detail = await joinResponse.text();
+          throw new Error(`/api/join failed: ${detail}`);
+        }
+        const { app_id, channel, uid, token, agent_id, agent_uid } = await joinResponse.json();
+        session = { channel, agentUid: agent_uid, agentId: agent_id };
+
+        client = AgoraRTC.createClient({ mode: 'rtc', codec: 'vp8' });
+
+        client.on('user-published', async (user, mediaType) => {
+          await client.subscribe(user, mediaType);
+          if (mediaType === 'audio') {
+            user.audioTrack?.play();
+          }
+        });
+
+        await client.join(app_id, channel, token, Number(uid));
+
+        try {
+          localMicTrack = await AgoraRTC.createMicrophoneAudioTrack();
+          await client.publish([localMicTrack]);
+        } catch (micError) {
+          // No mic, permission denied, etc. — the demo still works in
+          // listen-only mode; the agent just won't hear you.
+          console.warn('[convoai-demo] microphone unavailable:', micError);
+          setStatus('No microphone available — you can listen, but the agent won’t hear you.', 'error');
+        }
+
+        setState('live');
+        if (!statusEl.dataset.tone) {
+          setStatus(`Connected — channel "${channel}".`);
+        }
+        stopBtn.disabled = false;
+      } catch (error) {
+        console.error('[convoai-demo] start failed:', error);
+        setState('error');
+        setStatus(error instanceof Error ? error.message : String(error), 'error');
+        await cleanupClientOnly();
+        startBtn.disabled = false;
+      }
+    }
+
+    async function cleanupClientOnly() {
+      if (localMicTrack) {
+        localMicTrack.close();
+        localMicTrack = null;
+      }
+      if (client) {
+        await client.leave().catch(() => undefined);
+        client = null;
+      }
+    }
+
+    async function stop() {
+      stopBtn.disabled = true;
+      setStatus('Ending the conversation…');
+
+      await cleanupClientOnly();
+
+      if (session) {
+        await fetch('/api/leave', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            channel: session.channel,
+            agent_uid: session.agentUid,
+            agent_id: session.agentId,
+          }),
+        }).catch((error) => console.warn('[convoai-demo] /api/leave failed:', error));
+        session = null;
+      }
+
+      setState('idle');
+      setStatus('');
+      startBtn.disabled = false;
+    }
+
+    startBtn.addEventListener('click', () => { void start(); });
+    stopBtn.addEventListener('click', () => { void stop(); });
+
+    window.addEventListener('pagehide', () => {
+      // Best-effort: a synchronous-ish cleanup so a closed tab doesn't leave
+      // the agent running. fetch with keepalive survives page teardown.
+      if (session) {
+        navigator.sendBeacon?.(
+          '/api/leave',
+          new Blob(
+            [JSON.stringify({ channel: session.channel, agent_uid: session.agentUid, agent_id: session.agentId })],
+            { type: 'application/json' },
+          ),
+        );
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+{
+  "name": "@echosphere/orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --import tsx --watch src/server.ts",
+    "start": "node --env-file-if-exists=.env --import tsx src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'no lint configured'",
+    "test": "node --import tsx scripts/tokens.test.ts && node --import tsx scripts/control.test.ts && node --import tsx scripts/errors.test.ts && node --env-file=.env --import tsx scripts/board.test.ts && node --import tsx scripts/voice.test.ts && node --import tsx scripts/floorMachine.test.ts && node --env-file=.env --import tsx scripts/floor.test.ts && node --env-file=.env --import tsx scripts/echo.test.ts && node --import tsx scripts/gate.test.ts && node --env-file=.env --import tsx scripts/quiz.test.ts && node --env-file=.env --import tsx scripts/repetition.test.ts && node --env-file=.env --import tsx scripts/catchup.test.ts && node --env-file=.env --import tsx scripts/illustrate.test.ts && node --env-file=.env --import tsx scripts/mailer.test.ts && node --env-file=.env --import tsx scripts/library.test.ts",
+    "verify": "pnpm run typecheck && pnpm run test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:studio": "drizzle-kit studio",
+    "dump:join": "node --env-file-if-exists=.env --import tsx scripts/dump-join-payload.ts"
+  },
+  "dependencies": {
+    "@echosphere/shared-types": "workspace:*",
+    "@fastify/cors": "^11.0.1",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "agora-agents": "^2.3.1",
+    "agora-token": "^2.0.5",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.2.1",
+    "jose": "^6.2.12",
+    "nodemailer": "^10.0.3",
+    "postgres": "^3.4.9",
+    "resend": "^6.26.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.6",
+    "@types/nodemailer": "^8.0.1",
+    "@types/smtp-server": "^3.5.13",
+    "drizzle-kit": "^0.31.10",
+    "pino-pretty": "^13.0.0",
+    "smtp-server": "^3.19.10",
+    "tsx": "^4.20.6",
+    "typescript": "^5.7.3"
+  }
+}

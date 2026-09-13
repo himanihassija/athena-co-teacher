@@ -1,0 +1,19 @@
+{
+  "name": "athena-echosphere",
+  "version": "0.1.0",
+  "private": true,
+  "description": "PS31 Voice AI Co-Teacher — audio-only live classroom with an Agora ConvoAI co-teacher",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @echosphere/web dev",
+    "dev:classroom": "pnpm --filter @echosphere/orchestrator --filter @echosphere/web --parallel dev",
+    "build": "pnpm --filter @echosphere/web build",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "devDependencies": {
+    "playwright": "^1.62.1"
+  }
+}

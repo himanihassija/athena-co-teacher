@@ -1,0 +1,7 @@
+{
+  "projectId": "dwVCsItOK",
+  "projectName": "classroom-coteacher",
+  "region": "global",
+  "template": "nextjs",
+  "envPath": ".env.local"
+}

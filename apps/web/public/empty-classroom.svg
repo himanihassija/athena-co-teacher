@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%" fill="none">
+  <!-- Soft Background Blob -->
+  <path d="M 200,40 C 310,30 370,100 370,180 C 370,250 290,280 200,280 C 110,280 40,240 40,170 C 40,90 90,50 200,40 Z" fill="#FDF3E7" />
+  
+  <!-- Desk Base Lines -->
+  <line x1="80" y1="230" x2="320" y2="230" stroke="#F0E2D0" stroke-width="2" stroke-linecap="round" />
+
+  <!-- Side Table (Left) -->
+  <rect x="95" y="180" width="40" height="4" rx="2" fill="#D97706" opacity="0.6"/>
+  <line x1="102" y1="184" x2="100" y2="230" stroke="#78350F" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="128" y1="184" x2="130" y2="230" stroke="#78350F" stroke-width="2.5" stroke-linecap="round" />
+  <!-- Small basket / item on side table -->
+  <rect x="105" y="158" width="20" height="22" rx="3" fill="#F59E0B" />
+  <rect x="109" y="152" width="4" height="6" fill="#14B8A6" />
+  <rect x="115" y="148" width="4" height="10" fill="#6366F1" />
+
+  <!-- Main Desk (Center) -->
+  <!-- Legs -->
+  <line x1="130" y1="185" x2="120" y2="230" stroke="#374151" stroke-width="3" stroke-linecap="round" />
+  <line x1="270" y1="185" x2="280" y2="230" stroke="#374151" stroke-width="3" stroke-linecap="round" />
+  <!-- Tabletop -->
+  <rect x="115" y="180" width="170" height="6" rx="3" fill="#FDE68A" stroke="#F59E0B" stroke-width="1.5" />
+
+  <!-- Big Interactive Screen / Monitor on Desk -->
+  <rect x="135" y="90" width="130" height="84" rx="6" fill="#FFFFFF" stroke="#4B5563" stroke-width="3.5" />
+  <!-- Stand -->
+  <rect x="194" y="174" width="12" height="6" fill="#4B5563" />
+  <rect x="185" y="178" width="30" height="3" rx="1.5" fill="#374151" />
+  <!-- Inner Screen Content -->
+  <rect x="141" y="96" width="118" height="72" rx="3" fill="#F8FAFC" />
+  <line x1="150" y1="108" x2="210" y2="108" stroke="#CBD5E1" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="150" y1="116" x2="185" y2="116" stroke="#E2E8F0" stroke-width="2" stroke-linecap="round" />
+  <!-- Video / Presentation Box in Screen -->
+  <rect x="175" y="125" width="50" height="32" rx="4" fill="#D1FAE5" />
+  <polygon points="196,136 208,141 196,146" fill="#10B981" />
+
+  <!-- Potted Plant on Desk / Floor (Right) -->
+  <rect x="290" y="185" width="24" height="45" rx="2" fill="#E5E7EB" stroke="#D1D5DB" stroke-width="1" />
+  <ellipse cx="302" cy="185" rx="12" ry="3" fill="#9CA3AF" />
+  <!-- Foliage -->
+  <path d="M 302,185 Q 285,150 275,155 Q 285,170 302,185 Z" fill="#14B8A6" />
+  <path d="M 302,185 Q 302,135 304,138 Q 306,160 302,185 Z" fill="#0D9488" />
+  <path d="M 302,185 Q 320,150 328,158 Q 315,170 302,185 Z" fill="#2DD4BF" />
+
+  <!-- Modern Yellow Classroom Chair in Front -->
+  <!-- Legs -->
+  <line x1="180" y1="205" x2="170" y2="230" stroke="#374151" stroke-width="2.5" stroke-linecap="round" />
+  <line x1="220" y1="205" x2="230" y2="230" stroke="#374151" stroke-width="2.5" stroke-linecap="round" />
+  <!-- Seat Cushion -->
+  <rect x="172" y="198" width="56" height="8" rx="4" fill="#F59E0B" />
+  <!-- Backrest -->
+  <path d="M 178,198 L 178,162 Q 178,155 186,155 L 214,155 Q 222,155 222,162 L 222,198 Z" fill="#FBBF24" stroke="#F59E0B" stroke-width="1.5" />
+  <!-- Cutout in Backrest -->
+  <rect x="186" y="174" width="28" height="6" rx="3" fill="#FDF3E7" />
+</svg>

@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "orchestrator",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "apps/orchestrator", "run", "dev"],
+      "port": 8787,
+      "autoPort": false
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "apps/web", "run", "dev"],
+      "port": 3000,
+      "autoPort": false
+    },
+    {
+      "name": "python-demo",
+      "runtimeExecutable": "apps/python-demo/.venv/Scripts/python.exe",
+      "runtimeArgs": ["-m", "uvicorn", "app.main:app", "--reload", "--port", "8000", "--app-dir", "apps/python-demo"],
+      "port": 8000,
+      "autoPort": false
+    }
+  ]
+}
