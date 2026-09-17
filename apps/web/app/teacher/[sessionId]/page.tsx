@@ -201,6 +201,14 @@ export default function TeacherDashboardPage() {
    * header buttons.
    */
   const [agentMuted, setAgentMuted] = useState(false);
+  /**
+   * Athena's live remote audio track, reported up by ClassroomAudio via
+   * onAthenaAudioTrack. Passed down into ParticipantGrid -> AthenaTalkingHead
+   * for amplitude-driven lip-sync (see AthenaTalkingHead.tsx - Agora's
+   * resold TTS carries no viseme timing, so this raw track is the only
+   * signal available for mouth movement).
+   */
+  const [athenaAudioTrack, setAthenaAudioTrack] = useState<any>(undefined);
   /** Which tool-bag panel (if any) is open: quiz and gaps no longer live in the Menu drawer. */
   const [activeToolPanel, setActiveToolPanel] = useState<'quiz' | 'gaps' | null>(null);
 
@@ -944,6 +952,7 @@ export default function TeacherDashboardPage() {
                 onMicError={setMicError}
                 onSpeakingChange={setSpeakingUid}
                 onRelayHiddenChange={setRelayHidden}
+                onAthenaAudioTrack={setAthenaAudioTrack}
               />
 
               {/* Stage + optional pinned transcript sidebar, side by side. */}
@@ -1005,6 +1014,7 @@ export default function TeacherDashboardPage() {
                       onToggleAgentMute={toggleAgentMute}
                       agentBusy={busy}
                       onToggleAgentPresence={toggleAgentPresence}
+                      athenaAudioTrack={athenaAudioTrack}
                     />
                   )}
                 </div>

@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import type { PublicParticipant } from '@echosphere/shared-types';
 import { seatColorVar } from '@/lib/seatColor';
 import { initialsOf } from '@/components/classroom/panels';
-import { useAnamAvatar } from '@/hooks/useAnamAvatar';
+import { AthenaTalkingHead } from './AthenaTalkingHeadLazy';
 
 interface Tile {
   key: string;
@@ -90,8 +90,9 @@ export function ParticipantGrid({
   onToggleAgentMute,
   agentBusy = false,
   onToggleAgentPresence,
+  athenaAudioTrack,
 }: {
-  /** Needed to mint Anam session tokens — see hooks/useAnamAvatar.ts. */
+  /** Kept for API compatibility with the previous Anam integration; unused now. */
   sessionId: string;
   participants: PublicParticipant[];
   agentPresent: boolean;
@@ -119,6 +120,13 @@ export function ParticipantGrid({
    * brings her in too. Student view never passes this.
    */
   onToggleAgentPresence?: () => void;
+  /**
+   * Athena's live remote audio track (from ClassroomAudio's
+   * onAthenaAudioTrack). Passed straight through to AthenaTalkingHead for
+   * amplitude-driven lip-sync — Agora's resold TTS carries no viseme timing,
+   * so this raw track is the only signal available for mouth movement.
+   */
+  athenaAudioTrack?: any;
 }) {
   const teacher = participants.find((p) => p.role === 'teacher');
   const students = participants.filter((p) => p.role === 'student');
@@ -177,16 +185,6 @@ export function ParticipantGrid({
 
   const rows = Math.max(1, Math.ceil(tiles.length / columns));
 
-  // Anam's silent, muted video overlay for Athena. Voice stays entirely on
-  // Agora ConvoAI (see ClassroomAudio.tsx) — Anam only ever supplies a
-  // lip-flapping loop, nudged by Agora's real speaking state, not a
-  // word-accurate lip sync. See hooks/useAnamAvatar.ts / lib/anam.ts.
-  const { status: anamStatus, videoElementId } = useAnamAvatar(
-    sessionId,
-    agentPresent,
-    tiles.find((t) => t.isAgent)?.speaking ?? false,
-  );
-
   return (
     <div
       className="grid flex-1 gap-3"
@@ -196,13 +194,11 @@ export function ParticipantGrid({
       }}
     >
       {tiles.map((tile) => {
-        // Athena, once her video is actually live, gets a completely
-        // different tile treatment: full-bleed video filling the whole
-        // card (like a real video-call tile), with her name as a small
-        // overlay label — not the small circle-avatar + name-below layout
-        // every other tile uses. Only this one case changes the outer
-        // card's padding/layout; everything else below is untouched.
-        const isLiveVideoTile = tile.isAgent && anamStatus === 'connected';
+        // Athena, once she's present, gets a full-bleed 3D-avatar tile —
+        // same "video-call tile" treatment the Anam integration used, just
+        // filled with TalkingHead's Three.js canvas instead of a video
+        // element. Every other tile keeps the small circle-avatar layout.
+        const isLiveVideoTile = tile.isAgent && Boolean(tile.agentPresent);
 
         return (
           <div
@@ -242,16 +238,16 @@ export function ParticipantGrid({
 
             {tile.isAgent ? (
               isLiveVideoTile ? (
-                // Full-bleed: video fills the entire card. The name label
-                // moves to an overlay pill at the bottom, video-call style.
+                // Full-bleed: the 3D avatar fills the entire card. The name
+                // label sits as an overlay pill at the bottom, matching the
+                // old Anam video-call-style layout.
                 <>
-                  <video
-                    id={videoElementId}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
+                  <div className="absolute inset-0 h-full w-full">
+                    <AthenaTalkingHead
+                      audioTrack={athenaAudioTrack}
+                      speaking={tile.speaking}
+                    />
+                  </div>
                   <div
                     className="absolute bottom-3 left-3 z-10 rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm"
                     style={{
@@ -263,51 +259,13 @@ export function ParticipantGrid({
                   </div>
                 </>
               ) : (
-                <>
-                  {/* Always mounted the moment Athena is present — Anam's
-                      SDK needs this element to exist in the DOM *before* it
-                      can attach the stream to it, even while it's still
-                      invisible during 'connecting'. */}
-                  {tile.agentPresent && (
-                    <video
-                      id={videoElementId}
-                      autoPlay
-                      playsInline
-                      muted
-                      className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-0"
-                    />
-                  )}
-
-                  {tile.agentPresent && anamStatus === 'connecting' ? (
-                    <span
-                      className="eco-avatar-speaking relative flex h-16 w-16 items-center justify-center rounded-full text-lg font-semibold"
-                      style={{ background: 'var(--eco-ink-sunken)', color: 'var(--eco-athena)' }}
-                    >
-                      A
-                    </span>
-                  ) : (
-                    // Fallback: Anam not configured on this deployment, or
-                    // its connection errored out. Always the calm idle orb
-                    // — no speaking-glow state, since the live video (once
-                    // connected) is what conveys that instead.
-                    <span
-                      className={`relative flex h-16 w-16 items-center justify-center rounded-full text-lg font-semibold ${
-                        tile.agentPresent ? 'eco-orb-idle' : ''
-                      }`}
-                      style={{
-                        background: tile.agentPresent
-                          ? 'radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--eco-athena) 55%, transparent), transparent 70%), var(--eco-ink-sunken)'
-                          : 'var(--eco-ink-sunken)',
-                        color: 'var(--eco-athena)',
-                        boxShadow: tile.agentPresent
-                          ? '0 0 14px 1px color-mix(in srgb, var(--eco-athena) 35%, transparent)'
-                          : 'none',
-                      }}
-                    >
-                      A
-                    </span>
-                  )}
-                </>
+                // Fallback: Athena not yet brought into the room.
+                <span
+                  className="relative flex h-16 w-16 items-center justify-center rounded-full text-lg font-semibold"
+                  style={{ background: 'var(--eco-ink-sunken)', color: 'var(--eco-athena)' }}
+                >
+                  A
+                </span>
               )
             ) : (
               <span

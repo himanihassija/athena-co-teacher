@@ -13,6 +13,9 @@
  *
  * The StrictMode guards below are taken from the official quickstart. Removing
  * them causes a double RTC join and a duplicated microphone track.
+ *
+ * Also exposes Athena's own live remote audio track (via `onAthenaAudioTrack`)
+ * so the TalkingHead 3D avatar can analyse it for amplitude-driven lip-sync.
  */
 
 'use client';
@@ -87,6 +90,14 @@ export interface ClassroomAudioProps {
    * stops the room's transcript.
    */
   onRelayHiddenChange?: (hidden: boolean) => void;
+  /**
+   * Fires with Athena's own live remote audio track whenever it's available
+   * (or `undefined` if she's not currently publishing audio). Consumed by
+   * AthenaTalkingHead to drive amplitude-based lip-sync — Agora's resold TTS
+   * exposes no phoneme/viseme timing, so this raw track is the only signal
+   * available for mouth movement.
+   */
+  onAthenaAudioTrack?: (track: any) => void;
 }
 
 /** A human-readable reason for `useLocalMicrophoneTrack`'s error, if any. */
@@ -234,6 +245,7 @@ export function ClassroomAudio({
   onToolkitError,
   onMicError,
   onRelayHiddenChange,
+  onAthenaAudioTrack,
 }: ClassroomAudioProps) {
   const client = useRTCClient();
   const remoteUsers = useRemoteUsers();
@@ -242,6 +254,16 @@ export function ClassroomAudio({
   // box) and, hidden, its playback became unreliable. `useRemoteAudioTracks`
   // does the subscription and `<RemoteAudioTrack>` renders nothing.
   const { audioTracks } = useRemoteAudioTracks(remoteUsers);
+
+  // Athena's own track, singled out for the TalkingHead avatar's amplitude
+  // analyser. Reported up via onAthenaAudioTrack whenever it changes.
+  const athenaAudioTrack = audioTracks.find(
+    (track) => String(track.getUserId()) === agentUid,
+  );
+
+  useEffect(() => {
+    onAthenaAudioTrack?.(athenaAudioTrack);
+  }, [athenaAudioTrack, onAthenaAudioTrack]);
 
   // StrictMode guard from the quickstart: React's simulated unmount fires
   // cleanup synchronously before any setTimeout callback, so only the real
