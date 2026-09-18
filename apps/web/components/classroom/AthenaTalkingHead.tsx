@@ -3,49 +3,67 @@
 /**
  * Athena's 3D avatar, replacing the Anam video/Lottie tile.
  *
- * Built on met4citizen/TalkingHead — a Three.js class that renders a
- * Ready Player Me GLB avatar with lip-sync. TalkingHead is normally driven by
- * TTS providers that expose phoneme/viseme timing (ElevenLabs, Azure, Google,
- * HeadTTS). Agora's resold TTS gives us none of that — only a raw live audio
- * track — so lip movement here is driven by the track's real-time volume
- * level instead of true visemes. It's an approximation (mouth opens with
- * loudness, not per-phoneme shape), the same category of trade-off as the
- * muted-video approach before it, just on a real 3D head instead of a flat
- * clip.
+ * Built on met4citizen/TalkingHead — a Three.js class that renders an
+ * RPM-format GLB avatar with lip-sync. TalkingHead is normally driven by
+ * TTS providers that expose phoneme/viseme timing (ElevenLabs, Azure,
+ * Google, HeadTTS). Agora's resold TTS gives us none of that — only a raw
+ * live audio track — so lip-sync here is driven by met4citizen's own
+ * companion library, HeadAudio: a real-time, audio-driven viseme classifier
+ * (MFCC features + Gaussian/Mahalanobis classification) that needs no
+ * transcript or timestamps, built specifically for this "raw audio only"
+ * case. See https://github.com/met4citizen/HeadAudio.
+ *
+ * An earlier version of this component called a `head.setMouthAudioLevel()`
+ * method that does not exist on TalkingHead — that was a guess, made before
+ * the real API was confirmed, and it failed silently (wrapped in a
+ * try/catch), which is why the avatar loaded and spoke but never animated
+ * its mouth. HeadAudio is the library author's actual intended solution for
+ * this scenario and is used here instead.
+ *
+ * HeadAudio ships as plain JS modules + a small pretrained binary model,
+ * not an npm package — self-hosted under /public/headaudio/ rather than
+ * fetched from GitHub at runtime, same reasoning as self-hosting the avatar
+ * .glb after Ready Player Me's shutdown: no runtime dependency on a
+ * third-party host that could change or disappear.
  *
  * This component is dynamically imported with `ssr: false` wherever it's
- * used — importing `three`/TalkingHead at module scope crashes under SSR the
- * same way `agora-rtc-react` did (see ParticipantGrid.tsx's history).
+ * used — importing `three`/TalkingHead at module scope crashes under SSR
+ * (see ParticipantGrid.tsx's history with agora-rtc-react for the same
+ * failure mode).
  */
 
 import { useEffect, useRef, useState } from 'react';
 
-/** Default Ready Player Me sample avatar — replace with your own .glb URL any time. */
+/** Self-hosted avatar (Ready Player Me's own hosting shut down Jan 2026). */
 const DEFAULT_AVATAR_URL = '/athena-avatar.glb';
+
+const HEADAUDIO_MODULE_URL = '/headaudio/headaudio.min.mjs';
+const HEADWORKLET_MODULE_URL = '/headaudio/headworklet.min.mjs';
+const HEADAUDIO_MODEL_URL = '/headaudio/model-en-mixed.bin';
 
 export interface AthenaTalkingHeadProps {
   /** Athena's live remote audio track (from ClassroomAudio / useRemoteAudioTracks). */
   audioTrack: any;
-  /** Whether she's actively speaking right now — pauses idle animation when true. */
+  /** Whether she's actively speaking right now. Currently unused directly —
+   * HeadAudio detects speech activity from the audio itself — kept for a
+   * future idle/attention animation hook. */
   speaking?: boolean;
-  /** Optional: override the default sample avatar with your own RPM .glb URL. */
+  /** Optional: override the default self-hosted avatar with a different .glb URL. */
   avatarUrl?: string;
 }
 
 export function AthenaTalkingHead({
   audioTrack,
-  speaking = false,
   avatarUrl = DEFAULT_AVATAR_URL,
 }: AthenaTalkingHeadProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const headRef = useRef<any>(null);
-  const audioCtxRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const rafRef = useRef<number | null>(null);
+  const headAudioRef = useRef<any>(null);
+  const mediaSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load the TalkingHead instance and the avatar once, on mount.
+  // Load TalkingHead, the avatar, and the HeadAudio lip-sync engine once, on mount.
   useEffect(() => {
     let cancelled = false;
 
@@ -71,6 +89,44 @@ export function AthenaTalkingHead({
           return;
         }
 
+        // Register the HeadAudio worklet processor on TalkingHead's own
+        // AudioContext (head.audioCtx) — HeadAudio's viseme output is wired
+        // directly into this same head instance's morph targets, so it must
+        // share one audio graph rather than running in a second, separate
+        // AudioContext.
+        await head.audioCtx.audioWorklet.addModule(HEADWORKLET_MODULE_URL);
+
+        // webpackIgnore: these are runtime browser-URL imports of plain
+        // static files under /public, not bundler-resolvable module
+        // specifiers — telling webpack not to try to statically analyse them
+        // avoids a build-time resolution error for a path that only exists
+        // once deployed.
+        const { HeadAudio } = await import(
+          /* webpackIgnore: true */ HEADAUDIO_MODULE_URL
+        );
+
+        const headaudio = new HeadAudio(head.audioCtx, {
+          processorOptions: {},
+          parameterData: {
+            vadGateActiveDb: -40,
+            vadGateInactiveDb: -60,
+          },
+        });
+        await headaudio.loadModel(HEADAUDIO_MODEL_URL);
+
+        // Drive the avatar's viseme morph targets directly from HeadAudio's
+        // real-time classification output.
+        headaudio.onvalue = (key: string, value: number) => {
+          const target = head.mtAvatar?.[key];
+          if (target) Object.assign(target, { newvalue: value, needsUpdate: true });
+        };
+
+        // Link HeadAudio's per-frame update into TalkingHead's own animation
+        // loop, so lip movement is timed against the same render loop as the
+        // rest of the avatar rather than a separate rAF/interval.
+        head.opt.update = headaudio.update.bind(headaudio);
+
+        headAudioRef.current = headaudio;
         headRef.current = head;
         setLoaded(true);
       } catch (err) {
@@ -85,6 +141,10 @@ export function AthenaTalkingHead({
 
     return () => {
       cancelled = true;
+      mediaSourceRef.current?.disconnect();
+      mediaSourceRef.current = null;
+      headAudioRef.current?.disconnect?.();
+      headAudioRef.current = null;
       headRef.current?.dispose?.();
       headRef.current = null;
       setLoaded(false);
@@ -92,76 +152,37 @@ export function AthenaTalkingHead({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [avatarUrl]);
 
-  // Wire up a Web Audio analyser on Athena's live track, and drive the
-  // avatar's mouth-open amount from real-time volume — this is the
-  // amplitude-based lip-sync approximation described above.
+  // Connect Athena's live audio track into HeadAudio once both the avatar
+  // and the track are ready. Uses head.audioCtx (not a separate
+  // AudioContext) so the MediaStreamSource lives in the same graph HeadAudio
+  // was created in.
   useEffect(() => {
     if (!loaded || !audioTrack) return;
+    const head = headRef.current;
+    const headaudio = headAudioRef.current;
+    if (!head || !headaudio) return;
 
     let cancelled = false;
 
-    async function connectAnalyser() {
-      try {
-        const mediaStreamTrack: MediaStreamTrack | undefined =
-          audioTrack.getMediaStreamTrack?.();
-        if (!mediaStreamTrack) return;
+    try {
+      const mediaStreamTrack: MediaStreamTrack | undefined =
+        audioTrack.getMediaStreamTrack?.();
+      if (!mediaStreamTrack) return;
 
-        const stream = new MediaStream([mediaStreamTrack]);
-        const audioCtx = new AudioContext();
-        const source = audioCtx.createMediaStreamSource(stream);
-        const analyser = audioCtx.createAnalyser();
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.6;
-        source.connect(analyser);
+      const stream = new MediaStream([mediaStreamTrack]);
+      const source = head.audioCtx.createMediaStreamSource(stream);
+      if (cancelled) return;
 
-        if (cancelled) {
-          audioCtx.close();
-          return;
-        }
-
-        audioCtxRef.current = audioCtx;
-        analyserRef.current = analyser;
-
-        const data = new Uint8Array(analyser.frequencyBinCount);
-
-        const tick = () => {
-          const head = headRef.current;
-          const an = analyserRef.current;
-          if (!head || !an) return;
-
-          an.getByteFrequencyData(data);
-          const avg = data.reduce((s, v) => s + v, 0) / data.length;
-          // Normalise to a 0–1 mouth-open amount, with a floor so silence
-          // fully closes the mouth and a cap so clipping audio doesn't force
-          // an unnaturally wide-open jaw.
-          const mouthOpen = Math.min(1, Math.max(0, (avg - 8) / 60));
-
-          try {
-            head.setMouthAudioLevel?.(mouthOpen);
-            // Fallback if the installed TalkingHead version doesn't expose
-            // setMouthAudioLevel directly (API surface has moved between
-            // releases) — the morph target it drives internally.
-          } catch {
-            // Non-fatal: the avatar just idles without lip movement.
-          }
-
-          rafRef.current = requestAnimationFrame(tick);
-        };
-        tick();
-      } catch (err) {
-        console.error('[AthenaTalkingHead] audio analyser setup failed:', err);
-      }
+      source.connect(headaudio);
+      mediaSourceRef.current = source;
+    } catch (err) {
+      console.error('[AthenaTalkingHead] audio connect failed:', err);
     }
-
-    void connectAnalyser();
 
     return () => {
       cancelled = true;
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      analyserRef.current?.disconnect();
-      analyserRef.current = null;
-      void audioCtxRef.current?.close();
-      audioCtxRef.current = null;
+      mediaSourceRef.current?.disconnect();
+      mediaSourceRef.current = null;
     };
   }, [loaded, audioTrack]);
 
