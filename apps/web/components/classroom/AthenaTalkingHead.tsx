@@ -21,8 +21,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 /** Default Ready Player Me sample avatar — replace with your own .glb URL any time. */
-const DEFAULT_AVATAR_URL =
-  'https://models.readyplayer.me/64f1a714fe61576b510d7b40.glb';
+const DEFAULT_AVATAR_URL = '/athena-avatar.glb';
 
 export interface AthenaTalkingHeadProps {
   /** Athena's live remote audio track (from ClassroomAudio / useRemoteAudioTracks). */
