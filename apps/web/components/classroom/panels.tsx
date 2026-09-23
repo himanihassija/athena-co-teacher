@@ -433,7 +433,13 @@ export function QuizCards({
   onAnswer: (quizId: string, answer: string) => void;
   language?: LanguageCode;
 }) {
-  if (quizzes.length === 0) return null;
+  if (quizzes.length === 0) {
+    return (
+      <p className="py-2 text-sm text-[var(--eco-cream-faint)]">
+        No quizzes issued yet in this session.
+      </p>
+    );
+  }
 
   return (
     <section className="flex flex-col gap-3">
@@ -471,7 +477,7 @@ export function QuizCards({
                 <li key={option}>
                   <button
                     type="button"
-                    disabled={!canAnswer || myAnswer !== undefined}
+                    disabled={!canAnswer || myAnswer !== undefined || Boolean(correctAnswer)}
                     onClick={() => onAnswer(quiz.quizId, option)}
                     className="flex w-full items-center gap-2.5 rounded-lg border px-2.5 py-2 text-left text-sm transition-colors disabled:cursor-default"
                     style={{

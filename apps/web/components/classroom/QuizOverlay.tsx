@@ -41,8 +41,7 @@ export interface QuizOverlayProps {
 }
 
 export function QuizOverlay({ quizzes, onAnswer }: QuizOverlayProps) {
-  const card = quizzes[quizzes.length - 1];
-  const [dismissedId, setDismissedId] = useState<string | null>(null);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(() => new Set());
   const [now, setNow] = useState(() => Date.now());
   const [reducedMotion, setReducedMotion] = useState(false);
 
@@ -54,7 +53,8 @@ export function QuizOverlay({ quizzes, onAnswer }: QuizOverlayProps) {
     return () => media.removeEventListener('change', sync);
   }, []);
 
-  const pending = card !== undefined && card.quiz.quizId !== dismissedId;
+  const card = quizzes.slice().reverse().find((q) => !dismissedIds.has(q.quiz.quizId));
+  const pending = card !== undefined;
   const activeId = pending && card ? card.quiz.quizId : null;
 
   // How long this question's answer window is, measured from the deadline the
@@ -88,7 +88,9 @@ export function QuizOverlay({ quizzes, onAnswer }: QuizOverlayProps) {
   useEffect(() => {
     if (!card?.correctAnswer) return;
     const quizId = card.quiz.quizId;
-    const t = window.setTimeout(() => setDismissedId(quizId), REVEAL_LINGER_MS);
+    const t = window.setTimeout(() => {
+      setDismissedIds((prev) => new Set(prev).add(quizId));
+    }, REVEAL_LINGER_MS);
     return () => window.clearTimeout(t);
   }, [card?.correctAnswer, card?.quiz.quizId]);
 
@@ -105,7 +107,7 @@ export function QuizOverlay({ quizzes, onAnswer }: QuizOverlayProps) {
 
   // A quiz whose window (plus the reveal linger) is long gone — e.g. the page
   // was reloaded after it finished — should not reappear.
-  if (expired && !revealed && now > quiz.deadline + WINDOW_MS) return null;
+  if (expired && (now > quiz.deadline + (revealed ? REVEAL_LINGER_MS : WINDOW_MS))) return null;
 
   const locked = myAnswer !== undefined || expired || revealed;
   const frac = Math.max(0, Math.min(1, remainingMs / WINDOW_MS));
@@ -123,9 +125,9 @@ export function QuizOverlay({ quizzes, onAnswer }: QuizOverlayProps) {
         ? 'Not quite.'
         : 'Answer revealed.'
     : myAnswer !== undefined
-      ? `Locked in: ${myLetter}`.trimEnd()
+      ? `Locked in: ${myLetter || myAnswer}`.trimEnd()
       : expired
-        ? 'Time’s up.'
+        ? "Time's up."
         : 'Tap an answer — or say it out loud.';
 
   return (

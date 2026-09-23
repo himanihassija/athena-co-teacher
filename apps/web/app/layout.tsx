@@ -68,8 +68,11 @@ export default function RootLayout({
     <html
       lang="en"
       className={`h-full ${displayFont.variable} ${bodyFont.variable} ${devanagariFont.variable} ${monoFont.variable}`}
+      suppressHydrationWarning
     >
-      <body className="h-full min-h-screen">{children}</body>
+      <body className="h-full min-h-screen" suppressHydrationWarning>
+        {children}
+      </body>
     </html>
   );
 }
