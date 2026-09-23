@@ -30,6 +30,7 @@ import type {
   TeacherCommand,
   VerbosityLevel,
   InterventionRecord,
+  LanguageCode,
 } from '@echosphere/shared-types';
 import { ClassroomShell } from '@/components/classroom/ClassroomShell';
 import { ClassroomAudio } from '@/components/classroom/ClassroomAudioLazy';
@@ -54,7 +55,7 @@ import { ExcalidrawBoard } from '@/components/classroom/ExcalidrawBoardLazy';
 import { DigitalLibraryStage } from '@/components/library/DigitalLibraryStageLazy';
 import { ScreenShareControls } from '@/components/classroom/ScreenShareControls';
 import { ClassroomDrawer, type DrawerTab } from '@/components/classroom/ClassroomDrawer';
-import { useClassroom } from '@/hooks/useClassroom';
+import { useClassroom, type QuizCardState } from '@/hooks/useClassroom';
 import {
   clearIdentity,
   loadIdentity,
@@ -1098,7 +1099,11 @@ export default function TeacherDashboardPage() {
             </div>
 
             {activeToolPanel === 'quiz' ? (
-              <QuizCards quizzes={view.quizzes} canAnswer={false} onAnswer={() => undefined} language={lang} />
+              <TeacherQuizToolPanel
+                quizzes={view.quizzes}
+                onStartQuiz={(t) => void send({ type: 'START_QUIZ', topic: t })}
+                language={lang}
+              />
             ) : (
               <div className="flex flex-col gap-5">
                 <RestraintMeter state={view.restraintMeterState} score={view.restraintScore} />
@@ -1475,5 +1480,70 @@ function ReportView({ report, title }: { report: SessionReport; title?: string }
 
       <InterventionTimeline history={report.interventionHistory} />
     </section>
+  );
+}
+
+function TeacherQuizToolPanel({
+  quizzes,
+  onStartQuiz,
+  language = 'en',
+}: {
+  quizzes: QuizCardState[];
+  onStartQuiz: (topic: string) => void;
+  language?: LanguageCode;
+}) {
+  const [topic, setTopic] = useState('');
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="eco-panel-sunken flex flex-col gap-2 rounded-xl border p-4" style={{ borderColor: 'var(--eco-rule)' }}>
+        <label className="text-xs font-semibold uppercase tracking-wider text-[var(--eco-athena)]">
+          Launch a Pop Quiz
+        </label>
+        <div className="flex gap-2">
+          <input
+            className="flex-1 rounded-lg border px-3 py-2 text-sm text-[var(--eco-cream)] outline-none transition-colors focus:border-[var(--eco-athena)]"
+            style={{ borderColor: 'var(--eco-rule)', background: 'var(--eco-ink-sunken)' }}
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && topic.trim().length > 0) {
+                onStartQuiz(topic.trim());
+                setTopic('');
+              }
+            }}
+            placeholder="e.g. least common denominator"
+          />
+          <button
+            type="button"
+            disabled={topic.trim().length === 0}
+            onClick={() => {
+              if (topic.trim().length > 0) {
+                onStartQuiz(topic.trim());
+                setTopic('');
+              }
+            }}
+            className="rounded-lg border px-4 py-2 text-sm font-semibold transition-colors disabled:opacity-40"
+            style={{
+              borderColor: 'var(--eco-athena)',
+              background: 'var(--eco-athena-dim)',
+              color: 'var(--eco-athena)',
+            }}
+          >
+            Start Quiz
+          </button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <h3 className="eco-label text-xs">Quiz History &amp; Live Results</h3>
+        {quizzes.length > 0 ? (
+          <QuizCards quizzes={quizzes} canAnswer={false} onAnswer={() => undefined} language={language} />
+        ) : (
+          <p className="rounded-lg border border-dashed p-4 text-center text-sm text-[var(--eco-cream-faint)]" style={{ borderColor: 'var(--eco-rule)' }}>
+            No pop quizzes issued yet in this session. Type a topic above to launch a quiz, or ask Athena to quiz the class.
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
